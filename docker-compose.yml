@@ -1,0 +1,91 @@
+version: '3'
+services:
+
+  yii2:
+    image: yiisoftware/yii2-php:7.2-fpm
+    volumes: 
+      - ./trade:/app
+    networks:
+      - "backend"
+
+  nginx:
+      image: nginx:1.15.10-alpine
+      working_dir: /etc/nginx
+      volumes:
+          - ./volumes/nginx/conf.d:/etc/nginx/conf.d
+          - ./trade:/app
+      ports:
+          - "80:80"
+          - "8080:8080"
+      networks:
+        - "backend"
+
+  # nginx2:
+  #     # image: nginx:1.20
+  #     build: ./Docker/nginx/
+  #     working_dir: /etc/nginx
+  #     volumes:
+  #         - ./volumes/nginx/conf.d:/etc/nginx/conf.d
+  #         - ./volumes/nginx/nginx.conf:/etc/nginx/nginx.conf
+  #     ports:
+  #         - "80:80"
+  #         - "8080:8080"
+  #     networks:
+  #       - "backend"
+############### DB ###############
+
+  # mysql:
+  #   image: mysql:5.7
+  #   volumes:
+  #     - mysql-data:/var/lib/mysql
+  #     # - ./config/db_seed/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
+  #   restart: always
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: root
+  #     # MYSQL_USER: root
+  #     # MYSQL_PASSWORD: root
+  #   ports:
+  #     - "13306:3306"
+  #   networks:
+  #     - "backend"
+
+  postgres:
+    image: postgres:9.6
+    volumes:
+       - ./Docker/postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+       - postgres-data:/data/postgres
+       #psql -d databasename -U postgres < data_base_dump
+    restart: "always"
+    environment:
+      POSTGRES_PASSWORD: "123456"
+      # DEBUG: "false"
+      PGDATA: /data/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - "backend"
+
+  redis:
+    image: "redis"
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - "backend"
+
+  # memcached:
+  #   image: memcached:latest
+  #   restart: always
+  #   ports:
+  #     - "11211:11211"
+  #   networks:
+  #     - "backend"
+
+networks:
+  backend:
+
+volumes:
+  postgres-data:
+  mysql-data:
+
+#sudo service docker start
